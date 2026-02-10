@@ -5,26 +5,35 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const { Pool } = pg;
-
 const app = express();
-
-// ----- middleware -----
-app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "http://localhost:3001",
-    "https://inspectra.vercel.app",
-    "https://inspectra-xeun.vercel.app"
-  ],
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
-
-app.options("*", cors());
 app.use(express.json());
 
-// ----- database -----
+// CORS (safe default while you’re debugging)
+app.use(cors());
+app.options("*", cors());
+
+// Debug: confirm requests hit this server
+app.use((req, _res, next) => {
+  console.log(`[REQ] ${req.method} ${req.url}`);
+  next();
+});
+
+// Hard proof the server is alive
+app.get("/", (req, res) => {
+  res.type("text").send("Inspectra API is running. Try /health or /panels");
+});
+
+app.get("/health", (req, res) => {
+  res.json({ ok: true, time: new Date().toISOString() });
+});
+
+// ----- DB -----
+const { Pool } = pg;
+
+if (!process.env.DATABASE_URL) {
+  console.error("DATABASE_URL is missing in environment variables!");
+}
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DATABASE_URL?.includes("render")
@@ -32,19 +41,10 @@ const pool = new Pool({
     : false,
 });
 
-// ----- health check -----
-app.get("/health", (req, res) => {
-  res.json({ ok: true, time: new Date().toISOString() });
-});
-
-// ----- get panels -----
+// Panels routes
 app.get("/panels", async (req, res) => {
   try {
-    const result = await pool.query(
-      `SELECT *
-       FROM panels
-       ORDER BY created_at DESC`
-    );
+    const result = await pool.query(`SELECT * FROM panels ORDER BY created_at DESC`);
     return res.json(result.rows);
   } catch (err) {
     console.error("GET /panels error:", err);
@@ -52,36 +52,16 @@ app.get("/panels", async (req, res) => {
   }
 });
 
-app.get("/", (req, res) => {
-  res.type("text").send("Inspectra API is up. Try /health or /panels");
-});
-
-
-// ----- create panel -----
 app.post("/panels", async (req, res) => {
   try {
-    const {
-      siteName,
-      deviceIdMode,
-      panelMake,
-      panelModel,
-      panelLocation,
-      notes,
-    } = req.body;
+    const { siteName, deviceIdMode, panelMake, panelModel, panelLocation, notes } = req.body;
 
     const result = await pool.query(
       `INSERT INTO panels
         (site_name, device_id_mode, panel_make, panel_model, panel_location, notes)
        VALUES ($1,$2,$3,$4,$5,$6)
        RETURNING *`,
-      [
-        siteName,
-        deviceIdMode,
-        panelMake,
-        panelModel,
-        panelLocation,
-        notes,
-      ]
+      [siteName, deviceIdMode, panelMake, panelModel, panelLocation, notes ?? null]
     );
 
     return res.status(201).json(result.rows[0]);
@@ -91,8 +71,7 @@ app.post("/panels", async (req, res) => {
   }
 });
 
-// ----- start server -----
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`Inspectra API running on port ${PORT}`);
 });
