@@ -8,7 +8,8 @@
   "build": "vite build",
   "start": "vite preview --host 0.0.0.0 --port $PORT",
   "lint": "eslint ."
-}
+},
+
 
   },
   "dependencies": {
@@ -27,5 +28,5 @@
     "globals": "^16.5.0",
     "nodemon": "^3.1.11",
     "vite": "^7.2.4"
-  }
+  
 }
