@@ -1,4 +1,6 @@
-const BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const RAW = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const BASE = RAW.replace(/^VITE_API_URL\s*=\s*/i, "").trim();
+
 
 // Low-level requester: request("/panels", { method:"POST", body: JSON.stringify(...) })
 async function request(path, options = {}) {
