@@ -53,8 +53,7 @@ function apiCall(method, path, payload) {
 export const api = {
   // panels
   getPanels: () => apiCall("GET", "/panels"),
-  listPanels: () => apiCall("GET", "/panels"),
-
+  listPanels: () => apiCall("GET", "/panels"), // <-- ADD THIS
   createPanel: (payload) => apiCall("POST", "/panels", payload),
 
   // devices
