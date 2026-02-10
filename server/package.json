@@ -1,0 +1,25 @@
+{
+  "name": "inspectra-v1",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "migrate": "node migrate.js",
+    "seed": "node seed.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.1",
+    "nanoid": "^5.0.7",
+    "pg": "^8.18.0",
+    "uuid": "^13.0.0"
+  },
+  "description": "",
+  "main": "server.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
