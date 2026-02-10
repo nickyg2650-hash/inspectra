@@ -71,6 +71,67 @@ app.post("/panels", async (req, res) => {
   }
 });
 
+// ----- DEVICES -----
+// list devices for a panel
+app.get("/panels/:panelId/devices", async (req, res) => {
+  try {
+    const { panelId } = req.params;
+    const r = await pool.query(
+      `SELECT *
+       FROM devices
+       WHERE panel_id = $1
+       ORDER BY created_at DESC`,
+      [panelId]
+    );
+    return res.json(r.rows);
+  } catch (err) {
+    console.error("GET /panels/:panelId/devices error:", err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// add a device to a panel
+app.post("/panels/:panelId/devices", async (req, res) => {
+  try {
+    const { panelId } = req.params;
+
+    const {
+      zone,
+      address,
+      description,
+      category,
+      categoryOther,
+      deviceType,
+      deviceTypeOther,
+      notes,
+    } = req.body;
+
+    const r = await pool.query(
+      `INSERT INTO devices
+        (panel_id, zone, address, description, category, category_other, device_type, device_type_other, notes)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+       RETURNING *`,
+      [
+        panelId,
+        zone ?? null,
+        address ?? null,
+        description ?? null,
+        category ?? null,
+        categoryOther ?? null,
+        deviceType ?? null,
+        deviceTypeOther ?? null,
+        notes ?? null,
+      ]
+    );
+
+    return res.status(201).json(r.rows[0]);
+  } catch (err) {
+    console.error("POST /panels/:panelId/devices error:", err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`Inspectra API running on port ${PORT}`);
