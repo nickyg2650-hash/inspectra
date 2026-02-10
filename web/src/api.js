@@ -1,30 +1,32 @@
-const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
-async function request(method, path, body) {
-  const url = `${API}${path}`;
-
-  console.log("[API REQUEST]", method, url, body ?? null);
+async function request(path, options = {}) {
+  const url = `${BASE}${path}`;
+  console.log("[API REQUEST]", options.method || "GET", url, options.body ? JSON.parse(options.body) : "");
 
   const res = await fetch(url, {
-    method,
-    headers: { "Content-Type": "application/json" },
-    body: body ? JSON.stringify(body) : undefined,
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
   });
 
   const text = await res.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch { data = text; }
 
-  console.log("[API RESPONSE]", method, url, res.status, text);
+  console.log("[API RESPONSE]", res.status, url, data);
 
-  if (!res.ok) throw new Error(text || `${res.status} ${res.statusText}`);
-  return text ? JSON.parse(text) : null;
+  if (!res.ok) throw new Error(typeof data === "string" ? data : (data?.error || "Request failed"));
+  return data;
 }
 
-
-
 export const api = {
-  // panels
-  listPanels: () => request("GET", "/panels"),
-  createPanel: (data) => request("POST", "/panels", data),
+  getPanels: () => request("/panels"),
+  createPanel: (payload) =>
+    request("/panels", { method: "POST", body: JSON.stringify(payload) }),
+};
 
   // devices
   listDevicesForPanel: (panelId) => request("GET", `/panels/${panelId}/devices`),

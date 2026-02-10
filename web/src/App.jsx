@@ -182,6 +182,18 @@ const progressColor =
     }
   }
 
+  async function onCreatePanel(payload) {
+  try {
+    await api.createPanel(payload);        // create
+    const next = await api.getPanels();    // re-fetch list
+    setPanels(next);                       // update UI
+  } catch (e) {
+    console.error(e);
+    alert(e.message || "Create failed");
+  }
+}
+
+
   async function addDevice(e) {
     e.preventDefault();
     setErr("");
