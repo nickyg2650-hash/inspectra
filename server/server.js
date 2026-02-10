@@ -52,6 +52,11 @@ app.get("/panels", async (req, res) => {
   }
 });
 
+app.get("/", (req, res) => {
+  res.type("text").send("Inspectra API is up. Try /health or /panels");
+});
+
+
 // ----- create panel -----
 app.post("/panels", async (req, res) => {
   try {
