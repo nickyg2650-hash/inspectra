@@ -9,8 +9,23 @@ const app = express();
 app.use(express.json());
 
 // CORS (safe default while you’re debugging)
-app.use(cors());
+const ALLOWED_ORIGINS = [
+  "https://inspectra-peach.vercel.app",
+  "http://localhost:5173"
+];
+
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true); // allow curl / Postman
+    if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+    return cb(new Error("CORS blocked: " + origin));
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
 app.options("*", cors());
+
 
 // Debug: confirm requests hit this server
 app.use((req, _res, next) => {
